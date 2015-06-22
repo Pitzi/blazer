@@ -11,8 +11,8 @@ module Blazer
 
     layout "blazer/application"
 
-    before_action :ensure_database_url
-    before_action :set_query, only: [:show, :edit, :update, :destroy]
+    before_filter :ensure_database_url
+    before_filter :set_query, only: [:show, :edit, :update, :destroy]
 
     def index
       @queries = Blazer::Query.order(:name)
@@ -25,7 +25,7 @@ module Blazer
     end
 
     def create
-      @query = Blazer::Query.new(query_params)
+      @query = Blazer::Query.new(params[:query])
       @query.creator = current_user if respond_to?(:current_user) && Blazer.user_class
 
       if @query.save
@@ -59,7 +59,7 @@ module Blazer
       process_vars(@statement)
 
       if @success
-        @query = Query.find_by(id: params[:query_id]) if params[:query_id]
+        @query = Blazer::Query.where(id: params[:query_id]).first if params[:query_id]
 
         # audit
         if Blazer.audit
@@ -114,7 +114,7 @@ module Blazer
     end
 
     def update
-      if @query.update(query_params)
+      if @query.update_attributes(params[:query])
         redirect_to query_path(@query, variable_params)
       else
         render :edit
@@ -134,10 +134,6 @@ module Blazer
 
     def set_query
       @query = Blazer::Query.find(params[:id].to_s.split("-").first)
-    end
-
-    def query_params
-      params.require(:query).permit(:name, :description, :statement)
     end
 
     def csv_data(rows)
@@ -161,7 +157,7 @@ module Blazer
           result.each do |untyped_row|
             row = {}
             untyped_row.each do |k, v|
-              row[k] = result.column_types.empty? ? v : result.column_types[k].send(:type_cast, v)
+              row[k] = v
             end
             rows << row
           end
