@@ -244,6 +244,9 @@ module Blazer
           format.csv do
             send_data csv_data(@columns, @rows, @data_source), type: "text/csv; charset=utf-8; header=present", disposition: "attachment; filename=\"#{@query.try(:name).try(:parameterize).presence || 'query'}.csv\""
           end
+          format.excel do
+            send_data excel_data(@columns, @rows, @data_source), type: "application/vnd.ms-excel; header=present", disposition: "attachment; filename=\"#{@query.try(:name).try(:parameterize).presence || 'query'}.csv\""
+          end
         end
       end
 
@@ -311,6 +314,16 @@ module Blazer
             csv << row.each_with_index.map { |v, i| v.is_a?(Time) ? blazer_time_value(data_source, columns[i], v) : v }
           end
         end
+      end
+
+      def excel_data(columns, rows, data_source)
+        csv_content = CSV.generate(col_sep: "\t") do |csv|
+          csv << columns
+          rows.each do |row|
+            csv << row.each_with_index.map { |v, i| v.is_a?(Time) ? blazer_time_value(data_source, columns[i], v) : v.to_s.delete("\r\n") }
+          end
+        end
+        "\ufffe#{csv_content}".encode("UTF-16LE")
       end
 
       def blazer_time_value(data_source, k, v)

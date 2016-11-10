@@ -7,6 +7,8 @@ module Blazer
       app.config.assets.precompile << proc { |path| path =~ /\Ablazer\/application\.(js|css)\z/ }
       app.config.assets.precompile << proc { |path| path =~ /\Ablazer\/.+\.(eot|svg|ttf|woff)\z/ }
 
+      Mime::Type.register "application/vnd.ms-excel", :excel
+
       Blazer.time_zone ||= Blazer.settings["time_zone"] || Time.zone
       Blazer.audit = Blazer.settings.key?("audit") ? Blazer.settings["audit"] : true
       Blazer.user_name = Blazer.settings["user_name"] if Blazer.settings["user_name"]
