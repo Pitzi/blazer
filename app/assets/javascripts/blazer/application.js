@@ -14,4 +14,3 @@
 //= require ./ace/mode-sql
 //= require ./ace/snippets/text
 //= require ./ace/snippets/sql
-//= require chartkick
